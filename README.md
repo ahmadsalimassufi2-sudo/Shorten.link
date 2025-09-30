@@ -61,19 +61,22 @@
           });
 
           let data = await response.json();
-          console.log(data);
+          console.log("Response:", data);
 
-          if (data && data.data && data.data.shortenedUrl) {
+          // cari field url hasil shorten
+          let shortUrl = data?.data?.shortenedUrl || data?.shortenedUrl || data?.short_url;
+
+          if (shortUrl) {
             listItem.innerHTML = `
-              <input type="text" class="link-text" value="${data.data.shortenedUrl}" readonly>
+              <input type="text" class="link-text" value="${shortUrl}" readonly>
               <button onclick="copyOne(this)">Copy</button>
             `;
           } else {
-            listItem.innerHTML = `<span class="link-text">❌ Gagal: ${url}</span>`;
+            listItem.innerHTML = `<span class="link-text">❌ Gagal memendekkan: ${url}</span>`;
           }
         } catch (error) {
           listItem.innerHTML = `<span class="link-text">⚠️ Error koneksi: ${url}</span>`;
-          console.error(error);
+          console.error("Fetch error:", error);
         }
       }
     }
