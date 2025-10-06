@@ -96,7 +96,7 @@
 <body>
 
   <div class="container">
-    <h1>🔗 Baby ShortLink</h1>
+    <h1>🔗ShortLink</h1>
     <textarea id="longUrls" placeholder="Tempel banyak URL di sini (pisahkan dengan baris baru)..."></textarea>
     <div>
       <button id="shortenBtn">Pendekkan Semua</button>
