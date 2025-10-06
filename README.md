@@ -2,102 +2,205 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>SafeLinkU Bulk Shortener</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baby ShortLink</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f9; text-align: center; padding: 40px; }
-    textarea, button { padding: 10px; margin: 5px; width: 80%; max-width: 600px; }
-    textarea { height: 150px; }
-    button { cursor: pointer; background: #007BFF; color: white; border: none; border-radius: 5px; }
-    button:hover { background: #0056b3; }
-    .result { margin-top: 20px; padding: 15px; background: #fff; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: inline-block; width: 90%; max-width: 600px; text-align: left; }
-    .link-item { display: flex; justify-content: space-between; align-items: center; margin: 5px 0; padding: 5px; background: #f9f9f9; border-radius: 5px; }
-    .link-text { flex: 1; margin-right: 10px; }
+    body {
+      font-family: "Poppins", sans-serif;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: background-image 1s ease-in-out;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      position: relative;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      z-index: 1;
+    }
+
+    h1 {
+      color: #0078ff;
+      margin-bottom: 15px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      margin-bottom: 10px;
+      resize: none;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    button {
+      background: #0078ff;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin: 3px;
+    }
+
+    button:hover {
+      background: #005fcc;
+    }
+
+    .result {
+      margin-top: 15px;
+      font-size: 14px;
+      text-align: left;
+      word-wrap: break-word;
+    }
+
+    .short-link {
+      background: rgba(240, 248, 255, 0.9);
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+    }
+
+    .copy-btn {
+      background: #00c851;
+      border: none;
+      padding: 4px 8px;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-left: 5px;
+    }
+
+    .clear-btn {
+      background: #ff4444;
+    }
   </style>
 </head>
 <body>
-  <h2>🔗 SafeLinkU Bulk Link Shortener</h2>
-  <p>Masukkan banyak link (pisahkan dengan baris baru):</p>
-  <textarea id="longUrls" placeholder="https://link1.com&#10;https://link2.com&#10;https://link3.com"></textarea>
-  <br>
-  <button onclick="shortenLinks()">Shorten Semua</button>
-  <button onclick="copyAll()">Copy Semua Hasil</button>
 
-  <div id="results" class="result" style="display:none;">
-    <h3>✅ Hasil Shortened Links:</h3>
-    <div id="linksList"></div>
+  <div class="container">
+    <h1>🔗 Baby ShortLink</h1>
+    <textarea id="longUrls" placeholder="Tempel banyak URL di sini (pisahkan dengan baris baru)..."></textarea>
+    <div>
+      <button id="shortenBtn">Pendekkan Semua</button>
+      <button id="copyAllBtn">📋 Copy Semua</button>
+      <button id="clearBtn" class="clear-btn">🧹 Hapus Semua</button>
+    </div>
+    <div class="result" id="result"></div>
   </div>
 
   <script>
-    async function shortenLinks() {
-      const urls = document.getElementById("longUrls").value.trim().split("\n");
-      const resultsBox = document.getElementById("results");
-      const linksList = document.getElementById("linksList");
-      linksList.innerHTML = "";
+    // API key TinyURL
+    const API_KEY = "YhSIrCTfLiVXGGYEtXYMHjW2RgH3xugP6g1uUB0b6ieTo5BAavcrN0o9JNlb";
+
+    // -------------------------
+    // Ganti background otomatis
+    // -------------------------
+    const backgrounds = [
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+      "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70",
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+      "https://images.unsplash.com/photo-1491553895911-0055eca6402d",
+      "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05",
+      "https://images.unsplash.com/photo-1486308510493-aa64833634ef"
+    ];
+
+    let index = 0;
+    function changeBackground() {
+      document.body.style.backgroundImage = `url('${backgrounds[index]}?auto=format&fit=crop&w=1920&q=90')`;
+      index = (index + 1) % backgrounds.length;
+    }
+    changeBackground();
+    setInterval(changeBackground, 2000);
+
+    // -------------------------
+    // Logika Shortlink
+    // -------------------------
+    document.getElementById('shortenBtn').addEventListener('click', async () => {
+      const input = document.getElementById('longUrls');
+      const result = document.getElementById('result');
+      const urls = input.value.trim().split(/\n+/).filter(u => u);
 
       if (urls.length === 0) {
-        alert("Masukkan minimal satu link!");
+        result.innerHTML = "⚠️ Masukkan minimal satu URL ya Baby 💕";
         return;
       }
 
-      resultsBox.style.display = "block";
+      result.innerHTML = "⏳ Sedang memproses semua link...";
 
-      for (let url of urls) {
-        url = url.trim();
-        if (!url) continue;
+      let allShortened = [];
 
-        let listItem = document.createElement("div");
-        listItem.className = "link-item";
-        listItem.innerHTML = `<span class="link-text">⏳ Memproses: ${url}</span>`;
-        linksList.appendChild(listItem);
-
+      for (const longUrl of urls) {
         try {
-          let response = await fetch("https://safelinku.com/api/v1/links", {
-            method: "POST",
+          const response = await fetch('https://api.tinyurl.com/create', {
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer d09c8d5f826f0aa1700b58196eb1b43ebb00818b"
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + API_KEY
             },
-            body: JSON.stringify({ url })
+            body: JSON.stringify({
+              url: longUrl,
+              domain: 'tinyurl.com'
+            })
           });
 
-          let data = await response.json();
-          console.log("Response:", data);
+          const data = await response.json();
 
-          // cari field url hasil shorten
-          let shortUrl = data?.data?.shortenedUrl || data?.shortenedUrl || data?.short_url;
-
-          if (shortUrl) {
-            listItem.innerHTML = `
-              <input type="text" class="link-text" value="${shortUrl}" readonly>
-              <button onclick="copyOne(this)">Copy</button>
-            `;
+          if (data.data && data.data.tiny_url) {
+            const shortUrl = data.data.tiny_url;
+            allShortened.push(shortUrl);
           } else {
-            listItem.innerHTML = `<span class="link-text">❌ Gagal memendekkan: ${url}</span>`;
+            allShortened.push(`❌ Gagal: ${longUrl}`);
           }
         } catch (error) {
-          listItem.innerHTML = `<span class="link-text">⚠️ Error koneksi: ${url}</span>`;
-          console.error("Fetch error:", error);
+          allShortened.push(`⚠️ Error: ${longUrl}`);
+          console.error(error);
         }
       }
-    }
 
-    function copyOne(btn) {
-      const input = btn.parentElement.querySelector(".link-text");
-      navigator.clipboard.writeText(input.value || input.innerText).then(() => {
-        alert("Disalin: " + (input.value || input.innerText));
-      });
-    }
+      result.innerHTML = "<b>✅ Hasil Link Pendek:</b><br><br>" + 
+        allShortened.map(link => `
+          <div class="short-link">
+            <a href="${link}" target="_blank">${link}</a>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText('${link}')">Copy</button>
+          </div>
+        `).join('');
+    });
 
-    function copyAll() {
-      const inputs = document.querySelectorAll("#linksList .link-text");
-      let allLinks = [];
-      inputs.forEach(el => {
-        allLinks.push(el.value || el.innerText);
-      });
-      navigator.clipboard.writeText(allLinks.join("\n")).then(() => {
-        alert("Semua link berhasil disalin!");
-      });
-    }
+    // Copy semua link
+    document.getElementById('copyAllBtn').addEventListener('click', () => {
+      const links = [...document.querySelectorAll('.short-link a')].map(a => a.href).join('\n');
+      if (links) {
+        navigator.clipboard.writeText(links);
+        alert('📋 Semua link berhasil disalin!');
+      } else {
+        alert('Belum ada link yang dipendekkan.');
+      }
+    });
+
+    // Hapus input & hasil
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      document.getElementById('longUrls').value = '';
+      document.getElementById('result').innerHTML = '';
+    });
   </script>
+
 </body>
 </html>
